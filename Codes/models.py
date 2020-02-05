@@ -20,7 +20,7 @@ class DualAttention(nn.Module):
   def forward(self, img_feat1, img_feat2):
     # img_feat1 (batch_size, feature_dim, h, w)
     batch_size = img_feat1.size(0)
-    feature_dim = img_feat1.size(1) #######
+    feature_dim = img_feat1.size(1)
     
     img_diff = img_feat2 - img_feat1
 
@@ -47,14 +47,12 @@ class DualAttention(nn.Module):
     # alpha_img1, alpha_img2 have dimension
     # (batch_size, 1, h, w)
 
-    ########################## TODO ##### to check
 
     img_feat1 = img_feat1*(alpha_img1.repeat(1,1024,1,1))
     img_feat2 = img_feat2*(alpha_img2.repeat(1,1024,1,1))
-
-
+    
     # (batch_size,feature_dim,h,w) 
-    ########################## TODO ##### to check
+
     img_feat1 = img_feat1.sum(-2).sum(-1).view(batch_size, -1)
     img_feat2 = img_feat2.sum(-2).sum(-1).view(batch_size, -1)
 
@@ -111,10 +109,9 @@ class DynamicSpeaker(nn.Module):
   
     batch_size = l_bef.size(0)
 
-    l_diff = torch.sub(l_aft,l_bef)  ##### TODO  #####
+    l_diff = torch.sub(l_aft,l_bef)
 
-
-    l_total = torch.cat([l_bef,l_aft,l_diff],dim=1)  ### To check ###
+    l_total = torch.cat([l_bef,l_aft,l_diff],dim=1)
     l_total = self.relu(self.wd1(l_total)) # (batch_size, hidden_dim)
 
     # Sort input data by decreasing lengths
@@ -149,15 +146,14 @@ class DynamicSpeaker(nn.Module):
       h_da, c_da = self.dynamic_att(u_t[:batch_size_t], (h_da[:batch_size_t], c_da[:batch_size_t]))
 
       a_t = self.softmax(self.wd2(h_da)) #### (batch_size, 3)
-      
-      ### TODO ### to check ###
+     
       l_dyn = a_t[:,0].unsqueeze(1)*l_bef[:batch_size_t] + a_t[:,1].unsqueeze(1)*l_aft[:batch_size_t] + a_t[:,2].unsqueeze(1)*l_diff[:batch_size_t] 
       
       c_t = torch.cat([embeddings[:batch_size_t,t,:],l_dyn[:batch_size_t]], dim=1)
       
       h_ds, c_ds = self.decode_step(c_t, (h_ds[:batch_size_t], c_ds[:batch_size_t]))
 
-      preds = self.wdc(h_ds) #### TODO #### Dropout?!
+      preds = self.wdc(h_ds) 
       predictions[:batch_size_t, t, :] = preds
       alphas[:batch_size_t,t,:] = a_t
 
